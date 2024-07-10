@@ -26,7 +26,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 #     # queryset = Category.objects.all()
 #
 #     def get_queryset(self):
-#        # redéfinir get_queryset est la solution à adopter car elle permet d’être plus fin sur les éléments à retourner
+#         redefine get_queryset is the solution to adopt it allows you to be more precise on the elements to return
 #         return Category.objects.all()
 #
 

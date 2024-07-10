@@ -5,7 +5,7 @@ from django.urls import path, include
 # from shop.views import CategoryList
 # from shop.views import ProductList
 from rest_framework import routers
-from shop.views import CategoryViewset, ProductViewset  # transformer notre  ApiView  en un  ModelViewset
+from shop.views import CategoryViewset, ProductViewset  # transform ApiView & ListAPIView into a ModelViewset
 
 
 # Here we create our router
