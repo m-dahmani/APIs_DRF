@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from shop.models import Category, Product
-from shop.serializers import CategorySerializer, ProductSerializer
+from shop.models import Category, Product, Article
+from shop.serializers import CategorySerializer, ProductSerializer, ArticleSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -35,7 +35,8 @@ class CategoryViewset(ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        return Category.objects.all()
+        # Apply a filter on only active categories
+        return Category.objects.filter(active=True)
 
 
 # Function based view
@@ -61,4 +62,31 @@ class ProductViewset(ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.all()
+        queryset = Product.objects.all()
+        # We retrieve all active products in a variable named queryset
+        # queryset = Product.objects.filter(active=True)
+        # add a parameter to include unavailable categories
+        include_inactive = self.request.GET.get('include_inactive')
+        # Let's check the presence of the 'category_id' parameter in the url and if yes then apply our filter
+        category_id = self.request.GET.get('category_id')
+        if category_id is not None:
+            queryset = queryset.filter(category_id=category_id)
+        # force display of inactive products
+        if include_inactive is not None:
+            if include_inactive.lower() == 'true':
+                queryset = queryset.filter(active=False)
+        else:
+            queryset = queryset.filter(active=True)
+
+        return queryset
+
+
+class ArticleViewset(ReadOnlyModelViewSet):
+    serializer_class = ArticleSerializer
+
+    def get_queryset(self):
+        queryset = Article.objects.filter(active=True)
+        product_id = self.request.GET.get('product_id')
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+        return queryset
