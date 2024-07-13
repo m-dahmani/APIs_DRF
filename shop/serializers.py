@@ -30,7 +30,7 @@ class CategorySerializer(ModelSerializer):
 
 class ProductSerializer(ModelSerializer):
 
-    articles = SerializerMethodField()  # gives the possibility to filter the products to be returned
+    articles = SerializerMethodField()  # gives the possibility to filter the articles to be returned
 
     class Meta:
         model = Product
@@ -39,7 +39,7 @@ class ProductSerializer(ModelSerializer):
     def get_articles(self, instance):
         queryset = instance.articles.filter(active=True)
         serializer = ArticleSerializer(queryset, many=True)
-        return serializer.data  # Calculate some data to return.
+        return serializer.data
 
 
 class ArticleSerializer(ModelSerializer):

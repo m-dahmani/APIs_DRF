@@ -12,28 +12,19 @@ class ShopAPITestCase(APITestCase):
         En utilisant @classmethod, les données sont créées une fois pour toutes les méthodes de test,
         ce qui permet de gagner du temps et de s'assurer que les tests démarrent avec un état de base cohérent"""
         # Let's create two categories of which only one is active
-        # Attribue l'instance de la catégorie créée à un attribut de classe appelé category.
-        # Crée une nouvelle instance de la classe Category avec le nom 'Fruits' et l'attribut active défini sur True
+        # Assigns the created category instance to a class attribute called category
+        # Creates a new instance of the Category class with the name 'Fruits' and the active attribute set to True
         cls.category = Category.objects.create(name='Fruits', active=True)
-        # Crée une nouvelle instance de la classe Category avec le nom 'Légumes' et l'attribut active défini sur False.
-        # Cette instance n'est pas stockée dans un attribut de classe car elle n'est pas nécessaire dans les tests suivants.
+        # Creates a new instance of the Category class with the name 'Légumes' and the active attribute set to True
+        # This instance is not stored in a class attribute because it is not needed in subsequent tests
         Category.objects.create(name='Légumes', active=False)
 
-        #  Attribue l'instance du produit créé à un attribut de classe appelé product.
-        # Crée une nouvelle instance de la classe Product avec le nom 'Ananas' et l'attribut active défini sur True,
-        # associée à la catégorie category créée précédemment.
+        # Creates a new instance of the Product class with the name 'Ananas' and the active attribute set to True,
+        # associated with the previously created category 'category'
         cls.product = cls.category.products.create(name='Ananas', active=True)
-        # Crée une nouvelle instance de la classe Product avec le nom 'Banane' et l'attribut active défini sur False,
-        # associée à la catégorie category. Cette instance n'est pas stockée dans un attribut de classe
-        # car elle n'est pas nécessaire dans les tests suivants.
         cls.category.products.create(name='Banane', active=False)
 
-        # Attribue l'instance de la catégorie créée à un attribut de classe appelé category_2.
-        # Crée une nouvelle instance de la classe Category avec le nom 'Légumes' et l'attribut active défini sur True
         cls.category_2 = Category.objects.create(name='Légumes', active=True)
-        # Attribue l'instance du produit créé à un attribut de classe appelé product_2.
-        # Crée une nouvelle instance de la classe Product avec le nom 'Tomate' et l'attribut active défini sur True,
-        # associée à la catégorie category_2.
         cls.product_2 = cls.category_2.products.create(name='Tomate', active=True)
 
     def format_datetime(self, value):
