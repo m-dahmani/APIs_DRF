@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from shop.models import Category, Product, Article
-from shop.serializers import CategorySerializer, ProductSerializer, ArticleSerializer
+from shop.serializers import CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer, ProductDetailSerializer, ArticleSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -30,13 +30,37 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 #         return Category.objects.all()
 #
 
+class MultipleSerializerMixin:
+    """Create and use a Mixin. This is to allow us to share the code which allows us to define the serializer
+    to use according to the list and the details. This will avoid rewriting code and make maintenance easier."""
+
+    detail_serializer_class = None
+
+    def get_serializer_class(self):
+        # If the requested action is retrieve we return the detail serializer
+        if self.action == 'retrieve' and self.detail_serializer_class is not None:
+            return self.detail_serializer_class
+        return super().get_serializer_class()
+
+
 # transform ApiView into a ReadOnlyModelViewset
-class CategoryViewset(ReadOnlyModelViewSet):
-    serializer_class = CategorySerializer
+class CategoryViewset(MultipleSerializerMixin, ReadOnlyModelViewSet):
+    serializer_class = CategoryListSerializer
+    # Let's add a class attribute that allows us to define our detail serialize
+    detail_serializer_class = CategoryDetailSerializer
 
     def get_queryset(self):
         # Apply a filter on only active categories
-        return Category.objects.filter(active=True)
+        # Le warning concernant la pagination peut être résolu en spécifiant un ordre explicite dans votre queryset :
+        # Cela garantit que les résultats paginés sont renvoyés dans un ordre cohérent.
+        return Category.objects.filter(active=True).order_by('id')
+
+    # Create and use a Mixin instead
+    # def get_serializer_class(self):
+    #     # If the requested action is retrieve we return the detail serializer
+    #     if self.action == 'retrieve':
+    #         return self.detail_serializer_class
+    #     return super().get_serializer_class()
 
 
 # Function based view
@@ -58,8 +82,9 @@ class CategoryViewset(ReadOnlyModelViewSet):
 
 
 # transform ListAPIView into a ReadOnlyModelViewset
-class ProductViewset(ReadOnlyModelViewSet):
-    serializer_class = ProductSerializer
+class ProductViewset(MultipleSerializerMixin, ReadOnlyModelViewSet):
+    serializer_class = ProductListSerializer
+    detail_serializer_class = ProductDetailSerializer
 
     def get_queryset(self):
         queryset = Product.objects.all()
@@ -76,9 +101,15 @@ class ProductViewset(ReadOnlyModelViewSet):
             if include_inactive.lower() == 'true':
                 queryset = queryset.filter(active=False)
         else:
-            queryset = queryset.filter(active=True)
+            queryset = queryset.filter(active=True).order_by('id')
 
         return queryset
+
+    # Create and use a Mixin instead
+    # def get_serializer_class(self):
+    #     if self.action == 'retrieve':
+    #         return self.detail_serializer_class
+    #     return super().get_serializer_class()
 
 
 class ArticleViewset(ReadOnlyModelViewSet):

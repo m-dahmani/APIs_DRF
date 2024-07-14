@@ -51,9 +51,18 @@ class ShopAPITestCase(APITestCase):
                 'date_created': self.format_datetime(product.date_created),
                 'date_updated': self.format_datetime(product.date_updated),
                 'category': product.category_id,
-                'articles': self.get_article_list_data(product.articles.filter(active=True))
             } for product in products
         ]
+
+    def get_product_detail_data(self, product):
+        return {
+                'id': product.pk,
+                'name': product.name,
+                'date_created': self.format_datetime(product.date_created),
+                'date_updated': self.format_datetime(product.date_updated),
+                'category': product.category_id,
+                'articles': self.get_article_list_data(product.articles.filter(active=True))
+            }
 
     def get_category_list_data(self, categories):
         return [
@@ -62,9 +71,17 @@ class ShopAPITestCase(APITestCase):
                 'name': category.name,
                 'date_created': self.format_datetime(category.date_created),
                 'date_updated': self.format_datetime(category.date_updated),
-                'products': self.get_product_list_data(category.products.filter(active=True))
             } for category in categories
         ]
+
+    def get_category_detail_data(self, category):
+        return {
+                'id': category.id,
+                'name': category.name,
+                'date_created': self.format_datetime(category.date_created),
+                'date_updated': self.format_datetime(category.date_updated),
+                'products': self.get_product_list_data(category.products.filter(active=True))
+            }
 
 
 class TestCategory(ShopAPITestCase):
@@ -79,6 +96,15 @@ class TestCategory(ShopAPITestCase):
 
         # the values returned are those expected
         self.assertEqual(response.json()['results'], self.get_category_list_data([self.category, self.category_2]))
+
+    def test_detail(self):
+        # We use detail url
+        url_detail = reverse('category-detail', kwargs={'pk': self.category.pk})
+        response = self.client.get(url_detail)
+        # We check the return status code
+        self.assertEqual(response.status_code, 200)
+        # We check the return the data received for a single category
+        self.assertEqual(response.json(), self.get_category_detail_data(self.category))
 
     def test_create(self):
         category_count = Category.objects.count()
@@ -100,6 +126,12 @@ class TestProduct(ShopAPITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.get_product_list_data([self.product, self.product_2]), response.json()['results'])
+
+    def test_detail(self):
+        url_detail = reverse('product-detail', kwargs={'pk': self.product.pk})
+        response = self.client.get(url_detail)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), self.get_product_detail_data(self.product))
 
     def test_list_filter(self):
         response = self.client.get(self.url + '?category_id=%i' % self.category.pk)
