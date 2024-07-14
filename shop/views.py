@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.generics import ListAPIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from shop.models import Category, Product, Article
 from shop.serializers import CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer, ProductDetailSerializer, ArticleSerializer
@@ -54,6 +54,7 @@ class CategoryViewset(MultipleSerializerMixin, ReadOnlyModelViewSet):
         # Le warning concernant la pagination peut être résolu en spécifiant un ordre explicite dans votre queryset :
         # Cela garantit que les résultats paginés sont renvoyés dans un ordre cohérent.
         return Category.objects.filter(active=True).order_by('id')
+        # return Category.objects.all() # pour activer les categories via def enable il faut apply all categories
 
     # Create and use a Mixin instead
     # def get_serializer_class(self):
@@ -61,6 +62,22 @@ class CategoryViewset(MultipleSerializerMixin, ReadOnlyModelViewSet):
     #     if self.action == 'retrieve':
     #         return self.detail_serializer_class
     #     return super().get_serializer_class()
+
+    @action(detail=True, methods=['post'])  # We defined our accessible action on the POST method only
+    # it concerns the detail because it allows you to deactivate a category
+    def disable(self, request, pk):
+        # We can call the disable method
+        self.get_object().disable()
+        # Return a response (status_code=200 by default) to indicate the success of the action
+        return Response()
+
+    @action(detail=True, methods=['post'])
+    def enable(self, request, pk=None):
+        category = self.get_object()
+        # Debug
+        print(f"Enable action called for category ID: {pk}")
+        category.enable()
+        return Response({"status": "category and associated products enabled"})
 
 
 # Function based view
@@ -110,6 +127,11 @@ class ProductViewset(MultipleSerializerMixin, ReadOnlyModelViewSet):
     #     if self.action == 'retrieve':
     #         return self.detail_serializer_class
     #     return super().get_serializer_class()
+
+    @action(detail=True, methods=['post'])
+    def disable(self, request, pk):
+        self.get_object().disable()
+        return Response({"status": "product and associated articles disabled"})
 
 
 class ArticleViewset(ReadOnlyModelViewSet):
