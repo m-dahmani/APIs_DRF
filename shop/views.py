@@ -3,7 +3,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from shop.models import Category, Product, Article
-from shop.serializers import CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer, ProductDetailSerializer, ArticleSerializer
+from shop.serializers import (CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer,
+                              ProductDetailSerializer, ArticleSerializer)
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -41,6 +42,19 @@ class MultipleSerializerMixin:
         if self.action == 'retrieve' and self.detail_serializer_class is not None:
             return self.detail_serializer_class
         return super().get_serializer_class()
+
+
+class AdminCategoryViewset(MultipleSerializerMixin, ModelViewSet):
+    serializer_class = CategoryListSerializer
+    detail_serializer_class = CategoryDetailSerializer
+
+    def get_queryset(self):
+        return Category.objects.all()
+
+
+class AdminArticleViewset(ModelViewSet):
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all().order_by('id')
 
 
 # transform ApiView into a ReadOnlyModelViewset
