@@ -1,3 +1,4 @@
+import requests
 from django.db import models, transaction
 
 
@@ -59,6 +60,19 @@ class Product(models.Model):
         self.active = False
         self.save()
         self.articles.update(active=False)
+
+    def call_external_api(self, method, url):  # Call an external API This method will be monkey patched
+        return requests.request(method, url)
+
+    @property
+    # property that calls the API and returns the ecoscore
+    def ecoscore(self):
+        # call for open food fact
+        url = 'https://world.openfoodfacts.org/api/v0/product/3229820787015.json'
+        response = self.call_external_api('GET', url)
+        if response.status_code == 200:
+            # return the ecoscore if the response is valid
+            return response.json()['product']['ecoscore_grade']
 
 
 class Article(models.Model):
