@@ -2,12 +2,15 @@ from django.http import JsonResponse
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from shop.models import Category, Product, Article
-from shop.serializers import (CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer,
-                              ProductDetailSerializer, ArticleSerializer)
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.permissions import IsAuthenticated
+from shop.permissions import IsAdminAuthenticated, IsStaffAuthenticated
+
+from shop.models import Category, Product, Article
+from shop.serializers import (CategoryListSerializer, CategoryDetailSerializer, ProductListSerializer,
+                              ProductDetailSerializer, ArticleSerializer)
 
 
 # class CategoryAPIView(APIView):
@@ -48,8 +51,28 @@ class AdminCategoryViewset(MultipleSerializerMixin, ModelViewSet):
     serializer_class = CategoryListSerializer
     detail_serializer_class = CategoryDetailSerializer
 
+    # We simply have to apply the permission on the viewset
+    # permission_classes = [IsAuthenticated]
+
+    # Let's only give access to authenticated administrator users
+    # Apply both permissions to the viewset both administrators and staffs
+    permission_classes = [IsAdminAuthenticated, IsStaffAuthenticated]
+
     def get_queryset(self):
         return Category.objects.all()
+
+    # you can override the create method to prevent creation and add new categories
+    # Une exception PermissionDenied est levée si un utilisateur tente de créer une nouvelle catégorie.
+    # def create(self, request, *args, **kwargs):
+    #     # Disable category creation by raising a permission denied error
+    #     from rest_framework.exceptions import PermissionDenied
+    #     raise PermissionDenied("You do not have permission to add new categories.")
+
+    # Alternatively, you can override the create method to prevent creation
+    # def create(self, request, *args, **kwargs):
+    #     # Disable category creation
+    #     from rest_framework.response import Response
+    #     return Response({"detail": "Creation of categories is not allowed."}, status=403)
 
 
 class AdminArticleViewset(ModelViewSet):
